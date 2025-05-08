@@ -44,9 +44,9 @@ void setup() {
   // Guarda y muestra el valor del servidor
   servidor = String(custom_server.getValue());
   guardarServidor(servidor);
-  Serial.println("Conectado a WiFi");
+  Serial.println("Conectado a la red: " + WiFi.SSID());
   Serial.println("Servidor configurado: " + servidor);
-}
+} 
 
 void loop() {
   if (Serial.available()) {
@@ -64,4 +64,7 @@ void loop() {
       http.end();
     }
   }
+
+  Serial.println("Red: " + WiFi.SSID());
+  Serial.println("Servidor: " + servidor);
 }
