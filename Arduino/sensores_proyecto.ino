@@ -87,7 +87,7 @@ for (int fila = 0; fila < 2; fila++) {
     ultimaActualizacionScroll[fila] = millis();
 
     // Reiniciar scroll cuando se llegue al final
-    if (indiceScroll[fila] > mensajesScroll[fila].length() - 16) {
+    if (indiceScroll[fila] > mensajesScroll[fila].length() - 17) {
       indiceScroll[fila] = 0;
     }
   }
