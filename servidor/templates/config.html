@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Configuración de Umbrales y Correo</h2>
+<form method="post" class="form">
+  <div class="mb-3">
+    <label>Temperatura máxima</label>
+    <input class="form-control" name="temp_umbral" value="{{ config['temp_umbral'] }}">
+  </div>
+  <div class="mb-3">
+    <label>Humedad máxima</label>
+    <input class="form-control" name="hum_umbral" value="{{ config['hum_umbral'] }}">
+  </div>
+  <div class="mb-3">
+    <label>Lluvia minima (menos es mas)</label>
+    <input class="form-control" name="lluvia_umbral" value="{{ config['lluvia_umbral'] }}">
+  </div>
+  <div class="mb-3">
+    <label>Correo destino</label>
+    <input class="form-control" name="correo_destino" value="{{ config['correo_destino'] }}">
+  </div>
+  <button class="btn btn-primary" type="submit">Guardar</button>
+</form>
+{% endblock %}
