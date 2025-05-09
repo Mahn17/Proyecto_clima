@@ -31,6 +31,9 @@ void setup() {
   Serial.begin(9600);
   EEPROM.begin(EEPROM_SIZE);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH); // Apagar LED (inverso en ESP)
+
   WiFiManager wifiManager;
 
   // Campo personalizado para la IP del servidor
@@ -44,9 +47,9 @@ void setup() {
   // Guarda y muestra el valor del servidor
   servidor = String(custom_server.getValue());
   guardarServidor(servidor);
-  Serial.println("Conectado a la red: " + WiFi.SSID());
+  Serial.println("Conectado a: " + WiFi.SSID());
   Serial.println("Servidor configurado: " + servidor);
-} 
+}
 
 void loop() {
   if (Serial.available()) {
@@ -60,11 +63,20 @@ void loop() {
       http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
       String datos = "dato=" + linea;
-      http.POST(datos);
+      int httpCode = http.POST(datos);;  // Solo prueba GET
+      if (httpCode > 0) {
+        Serial.println("Datos enviados");
+        Serial.println("código: " + String(httpCode));
+
+        digitalWrite(LED_BUILTIN, LOW);  // Enciende LED
+        delay(300);
+        digitalWrite(LED_BUILTIN, HIGH); // Apaga LED
+      } else {
+        Serial.println("Error: " + String(httpCode));
+      }
       http.end();
     }
+  }else{
+    Serial.println("No se reciben datos");
   }
-
-  Serial.println("Red: " + WiFi.SSID());
-  Serial.println("Servidor: " + servidor);
 }
