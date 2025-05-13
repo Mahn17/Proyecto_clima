@@ -145,6 +145,26 @@ def config():
     conn.close()
     return render_template('config.html', config=configuraciones)
 
+@app.route('/api/datos')
+def api_datos():
+    conn = sqlite3.connect('sensores.db')
+    c = conn.cursor()
+    c.execute('SELECT fecha, temperatura, humedad, lluvia FROM datos ORDER BY fecha DESC LIMIT 100')
+    datos = c.fetchall()
+    conn.close()
+
+    datos = datos[::-1]  # Ordenar cronológicamente
+    fechas = [d[0] for d in datos]
+    temperaturas = [d[1] for d in datos]
+    humedades = [d[2] for d in datos]
+    lluvias = [d[3] for d in datos]
+
+    return {
+        "fechas": fechas,
+        "temperaturas": temperaturas,
+        "humedades": humedades,
+        "lluvias": lluvias
+    }
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

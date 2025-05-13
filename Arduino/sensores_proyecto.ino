@@ -1,7 +1,7 @@
 #include <dht_nonblocking.h>
 //#include "dht_nonblocking.h"
 //#include <DHT/dht_nonblocking.h>
-
+#include <LiquidCrystal.h>
 
 //www.elegoo.com
 //2018.10.25
@@ -12,13 +12,16 @@ DHT_nonblocking dht_sensor( DHT_SENSOR_PIN, DHT_SENSOR_TYPE );
 int pinLluvia=A0;
 int valorLluvia=0;
 
-
+LiquidCrystal lcd(7,8,9,10,11,12);
 /*
  * Initialize the serial port.
  */
 void setup( )
 {
   Serial.begin( 9600);
+  lcd.begin(16,2);
+  //lcd.setCursor(0,0);
+  lcd.print("Iniciando...");
 }
 
 
@@ -62,13 +65,26 @@ void loop( )
     Serial.print( temperature, 1 );
     Serial.print( ", H:" );//%
     Serial.print( humidity, 1 );
-    Serial.print( ", Lluvia:" );
-    
+    Serial.print( ", LLuvia:" );
     Serial.println(valorLluvia);
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("T:");
+    lcd.print(temperature, 1);
+    lcd.print("C H:");
+    lcd.print(humidity, 1);
+    lcd.print("%");
+
+    lcd.setCursor(0, 1);
+    lcd.print("Lluvia:");
+    lcd.print(valorLluvia);
+    
   }
   if (Serial.available()) {
     String linea = Serial.readStringUntil('\n');  // Recibe línea de Arduino
     Serial.println(linea);
+
   }
   //valorLluvia=analogRead(pinLluvia);
   //Serial.println(valorLluvia);

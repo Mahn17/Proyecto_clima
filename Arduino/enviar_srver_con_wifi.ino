@@ -48,7 +48,7 @@ void setup() {
   servidor = String(custom_server.getValue());
   guardarServidor(servidor);
   Serial.println("Conectado a: " + WiFi.SSID());
-  Serial.println("Servidor configurado: " + servidor);
+  Serial.println("Servidor: " + servidor);
 }
 
 void loop() {
@@ -62,21 +62,21 @@ void loop() {
       http.begin(client, servidor);
       http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-      String datos = "dato=" + linea;
-      int httpCode = http.POST(datos);;  // Solo prueba GET
-      if (httpCode > 0) {
-        Serial.println("Datos enviados");
-        Serial.println("código: " + String(httpCode));
-
-        digitalWrite(LED_BUILTIN, LOW);  // Enciende LED
-        delay(300);
-        digitalWrite(LED_BUILTIN, HIGH); // Apaga LED
-      } else {
-        Serial.println("Error: " + String(httpCode));
+      if(linea.startsWith("T:")){
+        String datos = "dato=" + linea;
+        int httpCode = http.POST(datos);
+        if (httpCode > 0) {
+          Serial.println("Datos enviados");
+          Serial.println("código: " + String(httpCode));
+  
+          digitalWrite(LED_BUILTIN, LOW);  // Enciende LED
+          delay(300);
+          digitalWrite(LED_BUILTIN, HIGH); // Apaga LED
+        } else {
+          Serial.println("Error: " + String(httpCode));
+        }
       }
       http.end();
     }
-  }else{
-    Serial.println("No se reciben datos");
   }
 }

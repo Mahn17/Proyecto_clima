@@ -83,7 +83,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
+  <!-- <script>
     const fechas = {{ fechas | tojson }};
     const temperaturas = {{ temperaturas | tojson }};
     const humedades = {{ humedades | tojson }};
@@ -145,6 +145,105 @@
         }
       }
     });
-  </script>
+  </script> -->
+<script>
+  const tempChart = new Chart(document.getElementById('tempChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Temperatura (°C)',
+        data: [],
+        borderColor: 'red',
+        fill: false
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const humChart = new Chart(document.getElementById('humChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Humedad (%)',
+        data: [],
+        borderColor: 'blue',
+        fill: false
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const lluviaChart = new Chart(document.getElementById('lluviaChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Lluvia',
+        data: [],
+        borderColor: 'green',
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, max: 1023 }
+      }
+    }
+  });
+
+  function actualizarGraficos() {
+    fetch('/api/datos')
+      .then(response => response.json())
+      .then(data => {
+
+      const ultTemp = data.temperaturas[data.temperaturas.length - 1];
+      const ultHum = data.humedades[data.humedades.length - 1];
+      const ultLluvia = data.lluvias[data.lluvias.length - 1];
+
+      // Actualizar títulos
+      document.querySelector("#tempChart").previousElementSibling.textContent = `Temperatura (${ultTemp} °C)`;
+      document.querySelector("#humChart").previousElementSibling.textContent = `Humedad (${ultHum} %)`;
+      document.querySelector("#lluviaChart").previousElementSibling.textContent = `Lluvia (${ultLluvia})`;
+
+        tempChart.data.labels = data.fechas;
+        tempChart.data.datasets[0].data = data.temperaturas;
+        tempChart.update();
+
+        humChart.data.labels = data.fechas;
+        humChart.data.datasets[0].data = data.humedades;
+        humChart.update();
+
+        lluviaChart.data.labels = data.fechas;
+        lluviaChart.data.datasets[0].data = data.lluvias;
+        lluviaChart.update();
+
+        // Actualizar tabla también
+        const tbody = document.querySelector("tbody");
+        tbody.innerHTML = "";
+        for (let i = 0; i < data.fechas.length; i++) {
+          const row = `<tr>
+              <td>${data.fechas[i]}</td>
+              <td>${data.temperaturas[i]}</td>
+              <td>${data.humedades[i]}</td>
+              <td>${data.lluvias[i]}</td>
+            </tr>`;
+          tbody.innerHTML += row;
+        }
+
+        // Actualizar texto de última actualización
+        document.querySelector("p").textContent = "Última actualización: " + data.fechas[data.fechas.length - 1];
+      });
+  }
+
+  // Cargar una vez al inicio
+  actualizarGraficos();
+
+  // Y luego cada 10 segundos
+  setInterval(actualizarGraficos, 10000);
+</script>
 
 {% endblock %}
