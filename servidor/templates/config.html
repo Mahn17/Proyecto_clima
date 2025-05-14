@@ -4,15 +4,30 @@
 <form method="post" class="form">
   <div class="mb-3">
     <label>Temperatura máxima</label>
-    <input class="form-control" name="temp_umbral" value="{{ config['temp_umbral'] }}">
+    <input class="form-control" name="temp_umbral_max" value="{{ config['temp_umbral_max'] }}">
   </div>
   <div class="mb-3">
     <label>Humedad máxima</label>
-    <input class="form-control" name="hum_umbral" value="{{ config['hum_umbral'] }}">
+    <input class="form-control" name="hum_umbral_max" value="{{ config['hum_umbral_max'] }}">
   </div>
   <div class="mb-3">
-    <label>Lluvia minima (menos es mas)</label>
-    <input class="form-control" name="lluvia_umbral" value="{{ config['lluvia_umbral'] }}">
+    <label>Temperatura minima</label>
+    <input class="form-control" name="temp_umbral_min" value="{{ config['temp_umbral_min'] }}">
+  </div>
+  <div class="mb-3">
+    <label>Humedad minima</label>
+    <input class="form-control" name="hum_umbral_min" value="{{ config['hum_umbral_min'] }}">
+  </div>
+  <div class="mb-3">
+
+    <label>Umbral de lluvia</label>
+    <select class="form-control" name="lluvia_umbral">
+      <option value="600" {% if config['lluvia_umbral'] == '600' %}selected{% endif %}>Sin lluvia</option>
+      <option value="300" {% if config['lluvia_umbral'] == '300' %}selected{% endif %}>Lluvia ligera</option>
+      <option value="0" {% if config['lluvia_umbral'] == '0' %}selected{% endif %}>Lluvia intensa</option>
+    </select>
+
+
   </div>
   <div class="mb-3">
     <label>Correo destino</label>

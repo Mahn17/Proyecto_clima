@@ -26,8 +26,10 @@ c.execute('''
 
 # Insertar valores predeterminados solo si no existen ya
 config_default = {
-    'temp_umbral': '30',
-    'hum_umbral': '70',
+    'temp_umbral_max': '30',
+    'hum_umbral_max': '70',
+    'temp_umbral_min': '10',
+    'hum_umbral_min': '10',
     'lluvia_umbral': '900',
     'correo_destino': 'tucorreo@ejemplo.com'
 }

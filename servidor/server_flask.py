@@ -25,7 +25,14 @@ def enviar_correo(temp, hum, lluvia, destinatario):
     remitente = 'mahn10.ma@gmail.com'
     # destinatario = 'mahn10@live.com.mx'
     asunto = 'Datos del sensor recibidos'
-    cuerpo = f'Temperatura: {temp}°C\nHumedad: {hum}%\nLluvia: {lluvia}'
+
+    if lluvia > 600:
+        estado_lluvia = "Sin lluvia"
+    elif lluvia > 300 :
+        estado_lluvia = "Lluvia ligera"
+    else:
+        estado_lluvia = "Lluvia intensa"
+    cuerpo = f'Temperatura: {temp}°C\nHumedad: {hum}%\n{estado_lluvia}'
 
     mensaje = MIMEText(cuerpo)
     mensaje['Subject'] = asunto
@@ -65,11 +72,13 @@ def recibir():
             guardar_dato(temp, hum, lluvia)
 
             # Obtener umbrales desde la base de datos
-            temp_umbral = float(obtener_config('temp_umbral'))
-            hum_umbral = float(obtener_config('hum_umbral'))
+            temp_umbral_max = float(obtener_config('temp_umbral_max'))
+            hum_umbral_max = float(obtener_config('hum_umbral_max'))
+            temp_umbral_min = float(obtener_config('temp_umbral_min'))
+            hum_umbral_min = float(obtener_config('hum_umbral_min'))
             lluvia_umbral = int(obtener_config('lluvia_umbral'))
 
-            if temp > temp_umbral or hum > hum_umbral or lluvia < lluvia_umbral:
+            if temp >= temp_umbral_max or hum >= hum_umbral_max or temp <= temp_umbral_min or hum <= hum_umbral_min or  (lluvia_umbral == 300 and 300 < lluvia <= 600) or  (lluvia_umbral == 0 and 0 <= lluvia <= 300) or (lluvia_umbral == 600 and lluvia > 600) :
                 correo = obtener_config('correo_destino')
                 enviar_correo(temp, hum, lluvia, correo)
 
@@ -136,7 +145,7 @@ def config():
     conn = sqlite3.connect('sensores.db')
     c = conn.cursor()
     if request.method == 'POST':
-        for clave in ['temp_umbral', 'hum_umbral', 'lluvia_umbral', 'correo_destino']:
+        for clave in ['temp_umbral_max', 'hum_umbral_max', 'temp_umbral_max', 'hum_umbral_max', 'lluvia_umbral', 'correo_destino']:
             nuevo_valor = request.form.get(clave)
             c.execute('UPDATE config SET valor = ? WHERE clave = ?', (nuevo_valor, clave))
         conn.commit()
@@ -153,7 +162,7 @@ def api_datos():
     datos = c.fetchall()
     conn.close()
 
-    datos = datos[::-1]  # Ordenar cronológicamente
+    #datos = datos[::-1]  # Ordenar
     fechas = [d[0] for d in datos]
     temperaturas = [d[1] for d in datos]
     humedades = [d[2] for d in datos]
