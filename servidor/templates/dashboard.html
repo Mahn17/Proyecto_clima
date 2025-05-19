@@ -97,6 +97,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
   <script>
     const tempChart = new Chart(document.getElementById('tempChart'), {
       type: 'line',
@@ -126,25 +128,73 @@
       options: { responsive: true, maintainAspectRatio: false }
     });
 
-    const lluviaChart = new Chart(document.getElementById('lluviaChart'), {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Lluvia',
-          data: [],
-          borderColor: 'green',
-          fill: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { min: 0, max: 1023 }
+const lluviaChart = new Chart(document.getElementById('lluviaChart'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Lluvia',
+      data: [],
+      borderColor: 'green',
+      fill: false
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: { min: 0, max: 1023 }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          lineaSinLluvia: {
+            type: 'line',
+            yMin: 600,
+            yMax: 600,
+            borderColor: 'gray',
+            borderWidth: 2,
+            label: {
+              content: 'Sin lluvia',
+              enabled: true,
+              display: true,   // Asegura que la etiqueta se muestre
+              position: 'end',
+              padding: 3
+            }
+          },
+          lineaLluviaLigera: {
+            type: 'line',
+            yMin: 300,
+            yMax: 300,
+            borderColor: 'orange',
+            borderWidth: 2,
+            label: {
+              content: 'Lluvia ligera',
+              enabled: true,
+              display: true,
+              position: 'end',
+              padding: 3
+            }
+          },
+          lineaLluviaIntensa: {
+            type: 'line',
+            yMin: 0,
+            yMax: 0,
+            borderColor: 'green',
+            borderWidth: 2,
+            label: {
+              content: 'Lluvia intensa',
+              enabled: true,
+              display: true,
+              position: 'end',
+              padding: 3
+            }
+          }
         }
       }
-    });
+    }
+  }
+});
 
     function actualizarGraficos() {
       fetch('/api/datos')
@@ -168,16 +218,16 @@
           document.querySelector("#humChart").previousElementSibling.textContent = `Humedad (${ultHum} %)`;
           document.querySelector("#lluviaChart").previousElementSibling.textContent = `Lluvia (${ultLluvia} - ${estadoLluvia})`;
 
-          tempChart.data.labels = data.fechas;
-          tempChart.data.datasets[0].data = data.temperaturas;
+          tempChart.data.labels = data.fechas.slice().reverse();
+          tempChart.data.datasets[0].data = data.temperaturas.slice().reverse();
           tempChart.update();
 
-          humChart.data.labels = data.fechas;
-          humChart.data.datasets[0].data = data.humedades;
+          humChart.data.labels = data.fechas.slice().reverse();
+          humChart.data.datasets[0].data = data.humedades.slice().reverse();
           humChart.update();
 
-          lluviaChart.data.labels = data.fechas;
-          lluviaChart.data.datasets[0].data = data.lluvias;
+          lluviaChart.data.labels = data.fechas.slice().reverse();
+          lluviaChart.data.datasets[0].data = data.lluvias.slice().reverse();
           lluviaChart.update();
 
           // Actualizar tabla también
@@ -204,7 +254,8 @@
           }
 
           // Actualizar texto de última actualización
-          document.querySelector("p").textContent = "Última actualización: " + data.fechas[data.fechas.length - 1];
+          document.querySelector("p").textContent = "Última actualización: " + data.fechas[0];
+
         });
     }
 

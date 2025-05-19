@@ -5,6 +5,10 @@ import smtplib
 from datetime import datetime
 import pytz
 from email.mime.text import MIMEText
+import ssl
+from datetime import datetime, timedelta
+
+ultimo_envio = datetime.min  
 
 app = Flask(__name__)
 
@@ -22,13 +26,12 @@ def guardar_dato(temp, hum, lluvia):
 
 
 def enviar_correo(temp, hum, lluvia, destinatario):
-    remitente = 'mahn10.ma@gmail.com'
-    # destinatario = 'mahn10@live.com.mx'
+    remitente = 'a220203714@unison.mx'
     asunto = 'Datos del sensor recibidos'
 
     if lluvia > 600:
         estado_lluvia = "Sin lluvia"
-    elif lluvia > 300 :
+    elif lluvia > 300:
         estado_lluvia = "Lluvia ligera"
     else:
         estado_lluvia = "Lluvia intensa"
@@ -40,9 +43,12 @@ def enviar_correo(temp, hum, lluvia, destinatario):
     mensaje['To'] = destinatario
 
     try:
-        servidor = smtplib.SMTP('smtp.gmail.com', 587)
-        servidor.starttls()
-        servidor.login(remitente, 'qcvw rfhm ilub qpjh')
+        context = ssl.create_default_context()
+        servidor = smtplib.SMTP('smtp.office365.com', 587)
+        servidor.ehlo()
+        servidor.starttls(context=context)
+        servidor.ehlo()
+        servidor.login(remitente, 'Uv1s7A3ykG')
         servidor.send_message(mensaje)
         servidor.quit()
         print("Correo enviado")
@@ -60,6 +66,7 @@ def obtener_config(clave):
 
 @app.route('/datos', methods=['POST'])
 def recibir():
+    global ultimo_envio
     dato = request.form.get('dato')
     if dato:
         # Esperamos algo como: T:24.5,H:60.1,Lluvia:822
@@ -78,9 +85,13 @@ def recibir():
             hum_umbral_min = float(obtener_config('hum_umbral_min'))
             lluvia_umbral = int(obtener_config('lluvia_umbral'))
 
-            if temp >= temp_umbral_max or hum >= hum_umbral_max or temp <= temp_umbral_min or hum <= hum_umbral_min or  (lluvia_umbral == 300 and 300 < lluvia <= 600) or  (lluvia_umbral == 0 and 0 <= lluvia <= 300) or (lluvia_umbral == 600 and lluvia > 600) :
+            ahora = datetime.now()
+            tiempo_transcurrido = (ahora - ultimo_envio).total_seconds()
+            print (tiempo_transcurrido)
+            if temp >= temp_umbral_max or hum >= hum_umbral_max or temp <= temp_umbral_min or hum <= hum_umbral_min or  (lluvia_umbral == 300 and 300 < lluvia <= 600) or  (lluvia_umbral == 0 and 0 <= lluvia <= 300) or (lluvia_umbral == 600 and lluvia > 600 and tiempo_transcurrido >= 10) :
                 correo = obtener_config('correo_destino')
                 enviar_correo(temp, hum, lluvia, correo)
+                ultimo_envio = ahora
 
             print(f"Guardado: T={temp} H={hum} Lluvia={lluvia}")
             return "OK", 200
