@@ -157,7 +157,7 @@ const lluviaChart = new Chart(document.getElementById('lluviaChart'), {
             label: {
               content: 'Sin lluvia',
               enabled: true,
-              display: true,   // Asegura que la etiqueta se muestre
+              display: true,
               position: 'end',
               padding: 3
             }
@@ -200,10 +200,10 @@ const lluviaChart = new Chart(document.getElementById('lluviaChart'), {
       fetch('/api/datos')
         .then(response => response.json())
         .then(data => {
-          const ultTemp = data.temperaturas[data.temperaturas.length - 1];
-          const ultHum = data.humedades[data.humedades.length - 1];
-          const ultLluvia = data.lluvias[data.lluvias.length - 1];
-
+        const ultTemp = data.temperaturas[0];
+        const ultHum = data.humedades[0];
+        const ultLluvia = data.lluvias[0];
+                
           let estadoLluvia;
           if (ultLluvia > 600) {
             estadoLluvia = "Sin lluvia";

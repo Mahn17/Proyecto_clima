@@ -12,7 +12,7 @@ void guardarServidor(String ip) {
   for (int i = 0; i < ip.length(); ++i) {
     EEPROM.write(i, ip[i]);
   }
-  EEPROM.write(ip.length(), '\0');  // Fin de cadena
+  EEPROM.write(ip.length(), '\0');  
   EEPROM.commit();
 }
 
@@ -32,11 +32,11 @@ void setup() {
   EEPROM.begin(EEPROM_SIZE);
 
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH); // Apagar LED (inverso en ESP)
+  digitalWrite(LED_BUILTIN, HIGH); // Apagar led
 
   WiFiManager wifiManager;
 
-  // Campo personalizado para la IP del servidor
+  // Campo para la IP del servidor
   WiFiManagerParameter custom_server("server", "URL del servidor", leerServidor().c_str(), 100);
 
   wifiManager.addParameter(&custom_server);
