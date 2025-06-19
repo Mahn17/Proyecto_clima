@@ -35,7 +35,11 @@ def enviar_correo(temp, hum, lluvia, destinatario):
         estado_lluvia = "Lluvia ligera"
     else:
         estado_lluvia = "Lluvia intensa"
-    cuerpo = f'Temperatura: {temp}°C\nHumedad: {hum}%\n{estado_lluvia}'
+
+    zona = pytz.timezone('America/Hermosillo')
+    fecha_local = datetime.now(zona).strftime('%Y-%m-%d %H:%M:%S')
+    
+    cuerpo = f'Fecha: {fecha_local}\nTemperatura: {temp}°C\nHumedad: {hum}%\n{estado_lluvia}'
 
     mensaje = MIMEText(cuerpo)
     mensaje['Subject'] = asunto
