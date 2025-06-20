@@ -5,16 +5,19 @@
     margin-top: 40px;
     margin: auto;
   }
+
   .chart-container {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
   }
+
   .chart-container .chart {
     width: 48%;
     height: 400px;
     margin-bottom: 30px;
   }
+
   .chart-container .chart-centered {
     width: 48%;
     height: 400px;
@@ -22,44 +25,48 @@
     margin-left: auto;
     margin-right: auto;
   }
+
   table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 40px;
   }
-  th, td {
+
+  th,
+  td {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: center;
   }
+
   th {
     background-color: #f4f4f4;
   }
 </style>
-  <h1>Dashboard de Sensores</h1>
-  <p>Última actualización: {{ ultima_actualizacion }}</p>
+<h1>Dashboard de Sensores</h1>
+<p>Última actualización: {{ ultima_actualizacion }}</p>
 
-  <div class="chart-container">
-    <div class="chart">
-      <h2>Temperatura (°C)</h2>
-      <canvas id="tempChart"></canvas>
-    </div>
-    <div class="chart">
-      <h2>Humedad (%)</h2>
-      <canvas id="humChart"></canvas>
-    </div>
+<div class="chart-container">
+  <div class="chart">
+    <h2>Temperatura (°C)</h2>
+    <canvas id="tempChart"></canvas>
   </div>
-  <div class="chart-container">
-    <div class="chart-centered">
-      <h2>Lluvia (valor analógico)</h2>
-      <canvas id="lluviaChart"></canvas>
-    </div>
+  <div class="chart">
+    <h2>Humedad (%)</h2>
+    <canvas id="humChart"></canvas>
   </div>
+</div>
+<div class="chart-container">
+  <div class="chart-centered">
+    <h2>Lluvia (valor analógico)</h2>
+    <canvas id="lluviaChart"></canvas>
+  </div>
+</div>
 
-  <h2>Datos en tabla</h2>
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered">
-      <thead class="table-light">
+<h2>Datos en tabla</h2>
+<div class="table-responsive">
+  <table class="table table-striped table-bordered">
+    <thead class="table-light">
       <tr>
         <th>Fecha</th>
         <th>Temperatura (°C)</th>
@@ -70,18 +77,18 @@
     </thead>
     <tbody>
       {% for f, t, h, l in tabla %}
-        <tr>
-          <td>{{ f }}</td>
-          <td>{{ t }}</td>
-          <td>{{ h }}</td>
-          <td>{{ l }} {% if l > 600 %}
-              Sin lluvia
-            {% elif l > 300 %}
-              Lluvia ligera
-            {% else %}
-              Lluvia intensa
-            {% endif %}</td>
-          <!-- <td>
+      <tr>
+        <td>{{ f }}</td>
+        <td>{{ t }}</td>
+        <td>{{ h }}</td>
+        <td>{{ l }} {% if l > 600 %}
+          Sin lluvia
+          {% elif l > 300 %}
+          Lluvia ligera
+          {% else %}
+          Lluvia intensa
+          {% endif %}</td>
+        <!-- <td>
             {% if l > 600 %}
               Sin lluvia
             {% elif l > 300 %}
@@ -90,180 +97,223 @@
               Lluvia intensa
             {% endif %}
           </td> -->
-        </tr>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
-  </div>
+</div>
+<div style="text-align:center; margin-top: 20px;">
+  <button id="primero">⏮ Inicio</button>
+  <button id="prev" disabled>← Anterior</button>
+  <span id="pagina-actual">Página 1</span>
+  <button id="next">Siguiente →</button>
+  <button id="ultimo">Final ⏭</button>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 
-  <script>
-    const tempChart = new Chart(document.getElementById('tempChart'), {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Temperatura (°C)',
-          data: [],
-          borderColor: 'red',
-          fill: false
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 
-    const humChart = new Chart(document.getElementById('humChart'), {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Humedad (%)',
-          data: [],
-          borderColor: 'blue',
-          fill: false
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
+<script>
+  let pagina = 1;
+  const porPagina = 50;
 
-const lluviaChart = new Chart(document.getElementById('lluviaChart'), {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [{
-      label: 'Lluvia',
-      data: [],
-      borderColor: 'green',
-      fill: false
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: { min: 0, max: 1023 }
+  const tempChart = new Chart(document.getElementById('tempChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Temperatura (°C)',
+        data: [],
+        borderColor: 'red',
+        fill: false
+      }]
     },
-    plugins: {
-      annotation: {
-        annotations: {
-          lineaSinLluvia: {
-            type: 'line',
-            yMin: 600,
-            yMax: 600,
-            borderColor: 'gray',
-            borderWidth: 2,
-            label: {
-              content: 'Sin lluvia',
-              enabled: true,
-              display: true,
-              position: 'end',
-              padding: 3
-            }
-          },
-          lineaLluviaLigera: {
-            type: 'line',
-            yMin: 300,
-            yMax: 300,
-            borderColor: 'orange',
-            borderWidth: 2,
-            label: {
-              content: 'Lluvia ligera',
-              enabled: true,
-              display: true,
-              position: 'end',
-              padding: 3
-            }
-          },
-          lineaLluviaIntensa: {
-            type: 'line',
-            yMin: 0,
-            yMax: 0,
-            borderColor: 'green',
-            borderWidth: 2,
-            label: {
-              content: 'Lluvia intensa',
-              enabled: true,
-              display: true,
-              position: 'end',
-              padding: 3
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const humChart = new Chart(document.getElementById('humChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Humedad (%)',
+        data: [],
+        borderColor: 'blue',
+        fill: false
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const lluviaChart = new Chart(document.getElementById('lluviaChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Lluvia',
+        data: [],
+        borderColor: 'green',
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, max: 1023 }
+      },
+      plugins: {
+        annotation: {
+          annotations: {
+            lineaSinLluvia: {
+              type: 'line',
+              yMin: 600,
+              yMax: 600,
+              borderColor: 'gray',
+              borderWidth: 2,
+              label: {
+                content: 'Sin lluvia',
+                enabled: true,
+                display: true,
+                position: 'end',
+                padding: 3
+              }
+            },
+            lineaLluviaLigera: {
+              type: 'line',
+              yMin: 300,
+              yMax: 300,
+              borderColor: 'orange',
+              borderWidth: 2,
+              label: {
+                content: 'Lluvia ligera',
+                enabled: true,
+                display: true,
+                position: 'end',
+                padding: 3
+              }
+            },
+            lineaLluviaIntensa: {
+              type: 'line',
+              yMin: 0,
+              yMax: 0,
+              borderColor: 'green',
+              borderWidth: 2,
+              label: {
+                content: 'Lluvia intensa',
+                enabled: true,
+                display: true,
+                position: 'end',
+                padding: 3
+              }
             }
           }
         }
       }
     }
-  }
-});
-
-    function actualizarGraficos() {
-      fetch('/api/datos')
-        .then(response => response.json())
-        .then(data => {
+  });
+  function actualizarGraficosTiempoReal() {
+    fetch('/api/datos?pagina=1')
+      .then(response => response.json())
+      .then(data => {
         const ultTemp = data.temperaturas[0];
         const ultHum = data.humedades[0];
         const ultLluvia = data.lluvias[0];
-                
+
+        let estadoLluvia;
+        if (ultLluvia > 600) estadoLluvia = "Sin lluvia";
+        else if (ultLluvia > 300) estadoLluvia = "Lluvia ligera";
+        else estadoLluvia = "Lluvia intensa";
+
+        document.querySelector("#tempChart").previousElementSibling.textContent = `Temperatura (${ultTemp} °C)`;
+        document.querySelector("#humChart").previousElementSibling.textContent = `Humedad (${ultHum} %)`;
+        document.querySelector("#lluviaChart").previousElementSibling.textContent = `Lluvia (${ultLluvia} - ${estadoLluvia})`;
+
+        tempChart.data.labels = data.fechas.slice().reverse();
+        tempChart.data.datasets[0].data = data.temperaturas.slice().reverse();
+        tempChart.update();
+
+        humChart.data.labels = data.fechas.slice().reverse();
+        humChart.data.datasets[0].data = data.humedades.slice().reverse();
+        humChart.update();
+
+        lluviaChart.data.labels = data.fechas.slice().reverse();
+        lluviaChart.data.datasets[0].data = data.lluvias.slice().reverse();
+        lluviaChart.update();
+      });
+  }
+
+  function actualizarGraficos() {
+    fetch(`/api/datos?pagina=${pagina}`)
+      .then(response => response.json())
+      .then(data => {
+        // Actualizar tabla
+        const tbody = document.querySelector("tbody");
+        tbody.innerHTML = "";
+        for (let i = 0; i < data.fechas.length; i++) {
           let estadoLluvia;
-          if (ultLluvia > 600) {
+          if (data.lluvias[i] > 600) {
             estadoLluvia = "Sin lluvia";
-          } else if (ultLluvia > 300) {
+          } else if (data.lluvias[i] > 300) {
             estadoLluvia = "Lluvia ligera";
           } else {
             estadoLluvia = "Lluvia intensa";
           }
 
-          // Actualizar títulos
-          document.querySelector("#tempChart").previousElementSibling.textContent = `Temperatura (${ultTemp} °C)`;
-          document.querySelector("#humChart").previousElementSibling.textContent = `Humedad (${ultHum} %)`;
-          document.querySelector("#lluviaChart").previousElementSibling.textContent = `Lluvia (${ultLluvia} - ${estadoLluvia})`;
+          const row = `<tr>
+          <td>${data.fechas[i]}</td>
+          <td>${data.temperaturas[i]}</td>
+          <td>${data.humedades[i]}</td>
+          <td>${data.lluvias[i]} - ${estadoLluvia}</td>
+        </tr>`;
+          tbody.innerHTML += row;
+        }
 
-          tempChart.data.labels = data.fechas.slice().reverse();
-          tempChart.data.datasets[0].data = data.temperaturas.slice().reverse();
-          tempChart.update();
+        // Actualizar texto de última actualización
+        document.querySelector("p").textContent = "Última actualización: " + data.fechas[0];
 
-          humChart.data.labels = data.fechas.slice().reverse();
-          humChart.data.datasets[0].data = data.humedades.slice().reverse();
-          humChart.update();
+        // Actualizar controles de paginación
+        document.getElementById("pagina-actual").textContent = `Página ${data.pagina}`;
+        document.getElementById("prev").disabled = data.pagina <= 1;
+        document.getElementById("next").disabled = data.fechas.length < 50;
+      });
+  }
 
-          lluviaChart.data.labels = data.fechas.slice().reverse();
-          lluviaChart.data.datasets[0].data = data.lluvias.slice().reverse();
-          lluviaChart.update();
+  // Cargar una vez al inicio
+  actualizarGraficos();
 
-          // Actualizar tabla también
-          const tbody = document.querySelector("tbody");
-          tbody.innerHTML = "";
-          for (let i = 0; i < data.fechas.length; i++) {
-            let estadoLluvia;
-            if (data.lluvias[i] > 600) {
-              estadoLluvia = "Sin lluvia";
-            } else if (data.lluvias[i] > 300) {
-              estadoLluvia = "Lluvia ligera";
-            } else {
-              estadoLluvia = "Lluvia intensa";
-            }
+  // Y luego cada 10 segundos
+  setInterval(actualizarGraficos, 4000);
+  actualizarGraficosTiempoReal();
+  setInterval(actualizarGraficosTiempoReal, 4000);
 
-            const row = `<tr>
-                <td>${data.fechas[i]}</td>
-                <td>${data.temperaturas[i]}</td>
-                <td>${data.humedades[i]}</td>
-                <td>${data.lluvias[i]} - ${estadoLluvia}</td>
-
-              </tr>`;
-            tbody.innerHTML += row;
-          }
-
-          // Actualizar texto de última actualización
-          document.querySelector("p").textContent = "Última actualización: " + data.fechas[0];
-
-        });
+  document.getElementById("prev").addEventListener("click", () => {
+    if (pagina > 1) {
+      pagina--;
+      actualizarGraficos();
     }
+  });
 
-    // Cargar una vez al inicio
+  document.getElementById("next").addEventListener("click", () => {
+    pagina++;
     actualizarGraficos();
+  });
+  document.getElementById("primero").addEventListener("click", () => {
+    pagina = 1;
+    actualizarGraficos();
+  });
 
-    // Y luego cada 10 segundos
-    setInterval(actualizarGraficos, 4000);
-  </script>
+  document.getElementById("ultimo").addEventListener("click", () => {
+    fetch('/api/datos')  // para saber cuántos registros hay
+      .then(response => response.json())
+      .then(data => {
+        const totalPaginas = Math.ceil(data.total / porPagina);
+        pagina = totalPaginas;
+        actualizarGraficos();
+      });
+  });
+
+</script>
 
 {% endblock %}

@@ -7,6 +7,9 @@ import pytz
 from email.mime.text import MIMEText
 import ssl
 from datetime import datetime, timedelta
+import threading
+import socket
+import time
 
 ultimo_envio = datetime.min  
 
@@ -171,13 +174,22 @@ def config():
 
 @app.route('/api/datos')
 def api_datos():
+    pagina = int(request.args.get('pagina', 1))
+    por_pagina = 25
+    offset = (pagina - 1) * por_pagina
+
     conn = sqlite3.connect('sensores.db')
     c = conn.cursor()
-    c.execute('SELECT fecha, temperatura, humedad, lluvia FROM datos ORDER BY fecha DESC LIMIT 100')
+
+    # Obtener total de registros
+    c.execute('SELECT COUNT(*) FROM datos')
+    total = c.fetchone()[0]
+
+    # Obtener la página de datos
+    c.execute('SELECT fecha, temperatura, humedad, lluvia FROM datos ORDER BY fecha DESC LIMIT ? OFFSET ?', (por_pagina, offset))
     datos = c.fetchall()
     conn.close()
 
-    #datos = datos[::-1]  # Ordenar
     fechas = [d[0] for d in datos]
     temperaturas = [d[1] for d in datos]
     humedades = [d[2] for d in datos]
@@ -187,8 +199,33 @@ def api_datos():
         "fechas": fechas,
         "temperaturas": temperaturas,
         "humedades": humedades,
-        "lluvias": lluvias
+        "lluvias": lluvias,
+        "total": total,
+        "pagina": pagina
     }
 
+def obtener_ip_local():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("10.255.255.255", 1))  # No hace falta que exista
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return ip
+
+def enviar_broadcast():
+    puerto = 4210  # Puerto en el que escuchará el ESP
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    while True:
+        ip = obtener_ip_local()
+        mensaje = f'SERVIDOR:http://{ip}:5000/datos'.encode()  # Ajusta el puerto según tu Flask
+        sock.sendto(mensaje, ('<broadcast>', puerto))
+        print(f"Broadcast enviado: {mensaje.decode()}")
+        time.sleep(5)
+
 if __name__ == '__main__':
+    threading.Thread(target=enviar_broadcast, daemon=True).start()
     app.run(host='0.0.0.0', port=5000)
